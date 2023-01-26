@@ -10,14 +10,13 @@ import { verifyExist } from "./middlewares";
 
 const app: Application = express();
 app.use(express.json());
-app.use("/purchaseList/:id", verifyExist);
 
 app.post("/purchaseList", CreateProduct);
 app.get("/purchaseList", showProducts);
-app.get("/purchaseList/:id", showProducts);
-app.delete("/purchaseList/:id", deleteProducts);
-app.delete("/purchaseList/:id/:name", deleteProductsItem);
-app.patch("/purchaseList/:id/:name", updateProductItem);
+app.get("/purchaseList/:id", verifyExist, showProducts);
+app.delete("/purchaseList/:id", verifyExist, deleteProducts);
+app.delete("/purchaseList/:id/:name", verifyExist, deleteProductsItem);
+app.patch("/purchaseList/:id/:name", verifyExist, updateProductItem);
 
 const PORT: number = 3000;
 const msg: string = "Server is runnig";

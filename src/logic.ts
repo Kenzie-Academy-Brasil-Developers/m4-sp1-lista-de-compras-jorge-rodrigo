@@ -32,11 +32,11 @@ const showProducts = (req: Request, res: Response): Response => {
   const id = req.params.id;
 
   if (id) {
-    const idProduct = products.find((prod) => prod.id === Number(id));
-    return res.status(200).json(idProduct);
+    const prod = req.product;
+    return res.status(200).json(prod);
   }
 
-  return res.status(201).json(products);
+  return res.status(200).json(products);
 };
 
 const deleteProductsItem = (req: Request, res: Response): Response => {
@@ -135,17 +135,17 @@ const validateData = (payload: any): iProducts => {
 const updateProductItem = (req: Request, res: Response): Response => {
   const id = req.params.id;
   const name = req.params.name;
-  const item = products.find((item) => item.id === Number(id));
+  let item = products.find((item) => item.id === Number(id));
   if (item) {
     try {
-      const data: number = item.data.findIndex((data) => data.name === name);
       const verifyExits = item.data.some((item) => item.name === name);
+      const verifyIndex = item.data.findIndex((item) => item.name === name);
       const validData = validateUpdateData(req.body);
       if (verifyExits) {
-        item?.data.splice(data, 1);
-        item?.data.push(validData);
-        return res.status(201).json(item);
+        item.data[verifyIndex] = { ...item.data[verifyIndex], ...validData };
+        return res.status(200).json(item);
       }
+      return res.status(404).json({ message: "item not found" });
     } catch (err: unknown) {
       if (err instanceof Error) {
         return res.status(400).json({ message: err.message });
@@ -153,7 +153,7 @@ const updateProductItem = (req: Request, res: Response): Response => {
       return res.status(500).json({ message: err });
     }
   }
-  return res.status(400).json({ message: "product not found" });
+  return res.status(404).json({ message: "product not found" });
 };
 
 const validateUpdateData = (payload: any): iData => {
@@ -166,23 +166,11 @@ const validateUpdateData = (payload: any): iData => {
       throw new Error("The list name need to be a string");
     }
   });
-  const hasRequiredKeys = requiredKeys.every((key) =>
-    payloadKeys.includes(key)
-  );
+  const hasRequiredKeys = requiredKeys.some((key) => payloadKeys.includes(key));
 
   if (!hasRequiredKeys) {
     const joinedKeys: string = requiredKeys.join(", ");
     throw new Error(`Required keys are ${joinedKeys}.`);
-  }
-
-  const verifyNewDataKeys =
-    JSON.stringify(requiredKeys) === JSON.stringify(payloadKeys);
-
-  if (!verifyNewDataKeys) {
-    const joinedKeys: string = requiredKeys.join(", ");
-    throw new Error(
-      `Adicional keys are detected, required keys are: ${joinedKeys}.`
-    );
   }
 
   return payload;
